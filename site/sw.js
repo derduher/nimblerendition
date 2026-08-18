@@ -17,11 +17,20 @@ self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
+// Cache storage is shared across the whole origin, so wiping every cache here
+// would also throw away the precaches the apps under /blaster/, /threadwell/
+// and /hugos/ maintain for themselves. Workbox names a cache after the scope
+// that owns it, which is enough to tell the old root worker's caches apart.
+const APP_PREFIXES = ["/blaster/", "/threadwell/", "/hugos/"];
+
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
-      await Promise.all(keys.map((key) => caches.delete(key)));
+      const ours = keys.filter(
+        (key) => !APP_PREFIXES.some((prefix) => key.includes(prefix)),
+      );
+      await Promise.all(ours.map((key) => caches.delete(key)));
       await self.registration.unregister();
 
       // Reload any open tab so it stops being controlled by a worker that no
