@@ -14,6 +14,10 @@ All four live in one S3 bucket behind one CloudFront distribution. Each app
 deploys into its own prefix and may `--delete` inside it; **this repo never
 uses `--delete`**, because at the root that would erase the apps.
 
+[docs/cutover.md](docs/cutover.md) is the runbook for the move from
+root-hosting to subpaths — the CloudFront, IAM and bucket-cleanup steps that
+live outside these repos.
+
 ## Layout
 
 - `site/index.html` — the landing page. No build step; it is served as written.
