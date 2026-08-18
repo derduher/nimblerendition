@@ -1,0 +1,55 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Only one deploy at a time; let an in-progress deploy finish.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  id-token: write # required for OIDC role assumption
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      # The apps live in prefixes of this same bucket, so nothing here may use
+      # --delete: a sync without it only ever adds or overwrites the handful of
+      # files in site/, and cannot touch /blaster/, /threadwell/ or /hugos/.
+      - name: Sync root assets
+        run: |
+          aws s3 sync site/ "s3://${{ vars.S3_BUCKET }}/" \
+            --cache-control "public, max-age=3600" \
+            --exclude "*.html" \
+            --exclude "sw.js"
+
+      # The landing page and the tombstone worker are the two files that have to
+      # be picked up immediately — the worker especially, since a cached copy of
+      # it is what keeps stale workers alive on returning visitors' browsers.
+      - name: Sync root HTML and service worker
+        run: |
+          aws s3 sync site/ "s3://${{ vars.S3_BUCKET }}/" \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --exclude "*" \
+            --include "*.html" \
+            --include "sw.js"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/" "/index.html" "/sw.js" "/favicon.svg"

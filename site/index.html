@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>nimblerendition</title>
+    <meta name="description" content="Side projects by Patrick Weygand." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #fbfaf8;
+        --ink: #1a1a19;
+        --ink-soft: #5f5d58;
+        --line: #e3e0d8;
+        --card: #ffffff;
+        --accent: #b4552d;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #101010;
+          --ink: #ededea;
+          --ink-soft: #9a978f;
+          --line: #2a2a28;
+          --card: #181817;
+          --accent: #e2854f;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 12vh 24px 24px;
+        background: var(--bg);
+        color: var(--ink);
+        font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+          sans-serif;
+        display: flex;
+        justify-content: center;
+      }
+      main {
+        width: 100%;
+        max-width: 44rem;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(1.75rem, 5vw, 2.5rem);
+        letter-spacing: -0.03em;
+      }
+      .tagline {
+        margin: 0.5rem 0 3rem;
+        color: var(--ink-soft);
+      }
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 12px;
+      }
+      a.card {
+        display: block;
+        padding: 20px 22px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--card);
+        color: inherit;
+        text-decoration: none;
+        transition: border-color 120ms ease, transform 120ms ease;
+      }
+      a.card:hover,
+      a.card:focus-visible {
+        border-color: var(--accent);
+        transform: translateY(-1px);
+      }
+      .name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .name::after {
+        content: " →";
+        color: var(--accent);
+      }
+      .what {
+        margin-top: 4px;
+        color: var(--ink-soft);
+        font-size: 0.9375rem;
+      }
+      footer {
+        margin-top: 3rem;
+        color: var(--ink-soft);
+        font-size: 0.875rem;
+      }
+      footer a {
+        color: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>nimblerendition</h1>
+      <p class="tagline">Side projects by Patrick Weygand.</p>
+
+      <ul>
+        <li>
+          <a class="card" href="/blaster/">
+            <div class="name">blaster</div>
+            <div class="what">
+              An asteroids-style shooter on a canvas. Plays in the browser,
+              installs as an app.
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="card" href="/threadwell/">
+            <div class="name">threadwell</div>
+            <div class="what">
+              Retirement projection — Monte Carlo paths, guardrails, and
+              sensitivity, computed in your browser.
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="card" href="/hugos/">
+            <div class="name">hugo reading tracker</div>
+            <div class="what">
+              Track which Hugo Award finalists and winners you have read, by
+              ceremony year.
+            </div>
+          </a>
+        </li>
+      </ul>
+
+      <footer>
+        <a href="https://github.com/derduher">github.com/derduher</a>
+      </footer>
+    </main>
+  </body>
+</html>
