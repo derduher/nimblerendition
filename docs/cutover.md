@@ -69,17 +69,31 @@ gh variable list --repo derduher/finproc   # AWS_ROLE_ARN, S3_BUCKET, CLOUDFRONT
 aws iam get-role --role-name <role> --query 'AssumeRolePolicyDocument'
 ```
 
-Add the two repos to the `token.actions.githubusercontent.com:sub` condition:
+Add the two repos to the `token.actions.githubusercontent.com:sub` condition.
+**GitHub issues two different spellings of that claim**, and which one a repo
+gets depends on when it was created:
 
-```json
-"StringLike": {
-  "token.actions.githubusercontent.com:sub": [
-    "repo:derduher/finproc:*",
-    "repo:derduher/hugos:*",
-    "repo:derduher/nimblerendition:*"
-  ]
-}
 ```
+repo:derduher/finproc:environment:Production                       # older repos
+repo:derduher@1011092/hugos@1337966646:environment:Production      # newer repos
+```
+
+The second form embeds the immutable owner and repository IDs, so it survives a
+rename and cannot be claimed by a recreated repo of the same name. A trust
+policy written only against the plain form fails with `Not authorized to
+perform sts:AssumeRoleWithWebIdentity` and no hint as to why — the claim the
+run actually presented is visible in CloudTrail:
+
+```bash
+aws cloudtrail lookup-events \
+  --lookup-attributes AttributeKey=EventName,AttributeValue=AssumeRoleWithWebIdentity \
+  --max-results 3 --region us-east-1 --query 'Events[].CloudTrailEvent' --output text
+```
+
+The role now lists both spellings for all three repos. Get a new repo's IDs with
+`gh api users/<owner> --jq .id` and `gh api repos/<owner>/<repo> --jq .id`, and
+note that a job with `environment: Production` presents the `:environment:` form,
+not the `:ref:` one.
 
 If the role's permission policy scopes `s3:PutObject` to a prefix, widen it to
 the whole bucket (or add `hugos/*` and the root objects). Check it before the
