@@ -41,35 +41,23 @@ Also note `DefaultRootObject`. It should be `index.html`; it only ever applies t
 
 Attach a CloudFront **viewer request** function to the default behavior:
 
-```js
-function handler(event) {
-  var request = event.request;
-  var uri = request.uri;
-
-  if (uri.charAt(uri.length - 1) === "/") {
-    request.uri = uri + "index.html";
-  } else {
-    var lastSegment = uri.substring(uri.lastIndexOf("/") + 1);
-    if (lastSegment.indexOf(".") === -1) {
-      request.uri = uri + "/index.html";
-    }
-  }
-
-  return request;
-}
-```
-
-`/blaster/` → `/blaster/index.html`, and `/hugos/stats` → `/hugos/stats/index.html`,
-which is the shape the Next export produces (`trailingSlash: true`). Requests
-that already name a file are left alone.
+The function lives in [infra/subdir-index.js](../infra/subdir-index.js):
+`/blaster/` becomes `/blaster/index.html`, and `/hugos/stats` becomes
+`/hugos/stats/index.html`, which is the shape the Next export produces
+(`trailingSlash: true`). Requests that already name a file are left alone.
 
 ```bash
-aws cloudfront create-function --name subdir-index \
+ETAG=$(aws cloudfront create-function --name subdir-index \
   --function-config Comment="append index.html to directory URIs",Runtime=cloudfront-js-2.0 \
-  --function-code fileb://subdir-index.js
-# publish it, then associate it with the default cache behavior as
-# viewer-request — easiest in the console under Behaviors › Function associations
+  --function-code fileb://infra/subdir-index.js \
+  --query 'ETag' --output text)
+
+aws cloudfront publish-function --name subdir-index --if-match "$ETAG"
 ```
+
+Then associate the published function with the default cache behavior as
+**viewer request** — in the console under **Behaviors › Function associations**,
+which is less error-prone than rewriting the whole distribution config by hand.
 
 ## 3. Let the two new repos assume the deploy role
 
